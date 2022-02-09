@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Tutorial 1: Threads and Synchronization in C++</title>
+  <style>
+    :root{--b-font-main:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;--b-font-mono:Consolas,Monaco,monospace;--b-txt:#2e3440;--b-bg-1:#fff;--b-bg-2:#eceff4;--b-line:#eceff4;--b-link:#bf616a;--b-btn-bg:#242933;--b-btn-txt:#fff;--b-focus:#88c0d0}*,:after,:before{box-sizing:border-box}html:focus-within{scroll-behavior:smooth}body{max-width:70ch;padding:0 1rem;margin:auto;background:var(--b-bg-1);font-family:var(--b-font-main);text-rendering:optimizeSpeed;line-height:1.5;color:var(--b-txt);-moz-tab-size:4;tab-size:4;word-break:break-word;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}address,audio,blockquote,dd,details,dl,fieldset,figure,h1,h2,h3,h4,h5,h6,hr,iframe,ol,p,pre,table,ul,video{margin:0 0 1.5rem}h1,h2,h3,h4,h5,h6{line-height:1.25;margin-top:2rem}h1{font-size:2rem}h2{font-size:1.5rem}h3{font-size:1.25rem}h4{font-size:1rem}h5{font-size:.875rem}h6{font-size:.75rem}a{color:var(--b-link);text-decoration:none}a:hover{text-decoration:underline}img,svg,video{height:auto}embed,iframe,img,object,svg,video{max-width:100%}iframe{border-style:none}abbr[title]{text-decoration:underline;text-decoration:underline dotted}blockquote{margin-left:0;padding:.5rem 0 .5rem 1.5rem;border-left:.25rem solid var(--b-txt)}blockquote>:last-child{margin-bottom:0}small{font-size:.875rem}sub,sup{font-size:.75em;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}hr{height:0;overflow:visible;border:0;border-bottom:1px solid var(--b-line)}code,kbd,pre,samp,tt,var{background:var(--b-bg-2);border-radius:.25rem;padding:.125rem .25rem;font-family:var(--b-font-mono);font-size:.875rem}pre{padding:1rem;border-radius:0;overflow:auto;white-space:pre}pre code{padding:0}details{display:block;padding:.5rem 1rem;background:var(--b-bg-2);border:1px solid var(--b-line);border-radius:.25rem}details>:last-child{margin-bottom:0}details[open]>summary{margin-bottom:1.5rem}summary{display:list-item;cursor:pointer;font-weight:700}summary:focus{box-shadow:none}table{border-collapse:collapse;width:100%;text-indent:0}table caption{margin-bottom:.5rem}tr{border-bottom:1px solid var(--b-line)}td,th{padding:.5rem 0}th{text-align:left}dd,ol,ul{padding-left:2rem}li>ol,li>ul{margin-bottom:0}fieldset{padding:.5rem .75rem;border:1px solid var(--b-line);border-radius:.25rem}legend{padding:0 .25rem}button,input,select,textarea{margin:0;padding:.5rem .75rem;max-width:100%;background:var(--b-bg-2);border:0;border-radius:.25rem;font:inherit;line-height:1.125;color:var(--b-txt)}input:not([size]):not([type=button i]):not([type=submit i]):not([type=reset i]):not([type=checkbox i]):not([type=radio i]),select{width:100%}[type=color i]{min-height:2.125rem}select:not([multiple]):not([size]){padding-right:1.5rem;background-repeat:no-repeat;background-position:right .5rem center;-moz-appearance:none;-webkit-appearance:none;appearance:none}textarea{width:100%;resize:vertical}textarea:not([rows]){height:8rem}[type=button i],[type=reset i],[type=submit i],button{-webkit-appearance:button;display:inline-block;text-align:center;white-space:nowrap;background:var(--b-btn-bg);color:var(--b-btn-txt);border:0;cursor:pointer;transition:opacity .25s}[type=button i]:hover,[type=reset i]:hover,[type=submit i]:hover,button:hover{opacity:.75}[type=button i][disabled],[type=reset i][disabled],[type=submit i][disabled],button[disabled]{opacity:.5}progress{vertical-align:middle}[type=search i]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}::-webkit-input-placeholder{color:inherit;opacity:.5}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}::-moz-focus-inner{border-style:none;padding:0}:-moz-focusring{outline:1px dotted ButtonText}:-moz-ui-invalid{box-shadow:none}[aria-busy=true i]{cursor:progress}[aria-controls]{cursor:pointer}[aria-disabled=true i],[disabled]{cursor:not-allowed}:focus,details:focus-within{outline:none;box-shadow:0 0 0 2px var(--b-focus)}@media (prefers-reduced-motion:reduce){html:focus-within{scroll-behavior:auto}*,:after,:before{animation-delay:-1ms!important;animation-duration:1ms!important;animation-iteration-count:1!important;background-attachment:scroll!important;scroll-behavior:auto!important;transition-delay:0!important;transition-duration:0!important}}select:not([multiple]):not([size]){background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg' fill='%232e3440'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z'/%3E%3C/svg%3E")}
+    body {
+      /* bamboo is too thin */
+      max-width: 80ch;
+    }
+    /* Add styling for captions, mainly to go under code blocks */
+    figcaption {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.header-section-number {
+      margin-right: 0.5em;
+    }
+    span.toc-section-number {
+      margin-right: 0.3em;
+    }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {  background-color: #eceff4; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ef2929; } /* Alert */
+    code span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #c4a000; } /* Attribute */
+    code span.bn { color: #0000cf; } /* BaseN */
+    code span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4e9a06; } /* Char */
+    code span.cn { color: #000000; } /* Constant */
+    code span.co { color: #8f5902; font-style: italic; } /* Comment */
+    code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+    code span.dt { color: #204a87; } /* DataType */
+    code span.dv { color: #0000cf; } /* DecVal */
+    code span.er { color: #a40000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #0000cf; } /* Float */
+    code span.fu { color: #000000; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+    code span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+    code span.ot { color: #8f5902; } /* Other */
+    code span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+    code span.sc { color: #000000; } /* SpecialChar */
+    code span.ss { color: #4e9a06; } /* SpecialString */
+    code span.st { color: #4e9a06; } /* String */
+    code span.va { color: #000000; } /* Variable */
+    code span.vs { color: #4e9a06; } /* VerbatimString */
+    code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+    code {
+      border-radius: 5px;
+      /* scale font size wrt current font size so it renders nicely inline */
+      /* font-size: .875rem; */
+      font-size: .875em;
+      /* Adjust for code blocks in headings, which have different font size */
+      /* padding: .125rem .25rem */
+      padding: calc(.6em - .4rem) .285em .14em .285em;
+    }
+    pre {
+      border-radius: 5px;
+      /* ensure font size is inherited by inner code block */
+      font-size: inherit;
+    }
+    div.sourceCode {
+      border-radius: 5px;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Tutorial 1: Threads and Synchronization in C++</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#task-1-preventing-a-data-race"><span class="toc-section-number">1</span> <mark>Task 1</mark>: Preventing a data race</a></li>
+<li><a href="#making-a-basic-concurrent-queue"><span class="toc-section-number">2</span> Making a basic concurrent queue</a>
+<ul>
+<li><a href="#demo-1-use-stdmutex"><span class="toc-section-number">2.1</span> Demo 1: use <code>std::mutex</code></a></li>
+<li><a href="#demo-2-use-stdunique_lock"><span class="toc-section-number">2.2</span> Demo 2: use <code>std::unique_lock</code></a></li>
+</ul></li>
+<li><a href="#task-2-adding-blocking-dequeue-to-our-concurrent-queue"><span class="toc-section-number">3</span> <mark>Task 2</mark>: Adding blocking dequeue to our concurrent queue</a></li>
+<li><a href="#demo-3-blocking-dequeue-using-a-monitor"><span class="toc-section-number">4</span> Demo 3: Blocking dequeue using a monitor</a></li>
+</ul>
+</nav>
+<p>In this tutorial we will cover the basics of how to write concurrent code in C++. There are two tasks and a number of demos.</p>
+<p>Before continuing, make sure you’re familiar with the concurrent hello world program which we broke down in Tutorial 0: <a href="https://godbolt.org/z/f6soPdK6f" class="uri">https://godbolt.org/z/f6soPdK6f</a></p>
+<p>Once you’re familiar with this program, let’s move on to how synchronization primitives can be used to prevent race conditions in C++.</p>
+<h1 data-number="1" id="task-1-preventing-a-data-race"><span class="header-section-number">1</span> <mark>Task 1</mark>: Preventing a data race</h1>
+<p>Our first task is to make sure you’re able to compile, run, read, and modify C++ code. We recommend trying this task out before attending the tutorial, just to ensure everything works.</p>
+<p>Note: Please compile this program locally instead of on godbolt.org, because it seems that godbolt’s ThreadSanitizer strips all debugging information, making it harder to use.</p>
+<p>Godbolt: <a href="https://godbolt.org/z/zGabdxodo" class="uri">https://godbolt.org/z/zGabdxodo</a></p>
+<figure>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;thread&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> counter<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>thread<span class="op"> </span>t0<span class="op">{[]()</span> <span class="op">{</span> <span class="op">++</span>counter<span class="op">;</span> <span class="op">}};</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>thread<span class="op"> </span>t1<span class="op">{[]()</span> <span class="op">{</span> <span class="op">++</span>counter<span class="op">;</span> <span class="op">}};</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  t0<span class="op">.</span>join<span class="op">();</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  t1<span class="op">.</span>join<span class="op">();</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>cout<span class="op"> &lt;&lt;</span> counter <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figcaption>Snippet 1: 
+Simple data race
+</figcaption></figure>
+<p>Let’s run this in ThreadSanitizer first!</p>
+<pre><code>...
+  Write of size 4 ...
+    #0 ... task1.cpp:8:25 ...
+...
+
+  Previous write ...
+    #0 ... task1.cpp:7:25 ...
+...</code></pre>
+<p>And we see that the data race is on lines 7 and 8.</p>
+<figure>
+<div class="sourceCode" id="cb3" data-startFrom="7"><pre class="sourceCode cpp"><code class="sourceCode cpp" style="counter-reset: source-line 6;"><span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>thread<span class="op"> </span>t0<span class="op">{[]()</span> <span class="op">{</span> <span class="op">++</span>counter<span class="op">;</span> <span class="op">}};</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>thread<span class="op"> </span>t1<span class="op">{[]()</span> <span class="op">{</span> <span class="op">++</span>counter<span class="op">;</span> <span class="op">}};</span></span></code></pre></div>
+<figcaption>Snippet 2: 
+Data race found by ThreadSanitizer
+</figcaption></figure>
+<p>Using <code>std::mutex</code>, how can you ensure that <code>counter</code> is incremented twice with no data race?</p>
+<p><strong>Hint</strong>: spoilers ahead :)</p>
+<h1 data-number="2" id="making-a-basic-concurrent-queue"><span class="header-section-number">2</span> Making a basic concurrent queue</h1>
+<p>Let’s move on to making something useful.</p>
+<p>Imagine we have two threads. One thread reads files, listens on sockets, etc. and creates a bunch of <code>Job</code>s, then another thread reads these <code>Job</code>s and does stuff like increment counters, etc.</p>
+<figure>
+<div class="sourceCode" id="cb4" data-startFrom="25"><pre class="sourceCode cpp"><code class="sourceCode cpp" style="counter-reset: source-line 24;"><span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Job <span class="op">{</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> id<span class="op">;</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> data<span class="op">;</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<figcaption>Snippet 3: 
+<code>Job</code> struct
+</figcaption></figure>
+<p>We want to send jobs from the first thread to the other thread, and to do that, we can use a <code>std::queue</code>.</p>
+<figure>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>queue<span class="op">&lt;</span>Job<span class="op">&gt;</span> jobs<span class="op">;</span></span></code></pre></div>
+<figcaption>Snippet 4</figcaption></figure>
+<p>However, such a naive approach will result in a data race, as <code>std::queue</code> is not designed to be accessed from multiple threads concurrently. To combat this, we can wrap <code>std::queue&lt;Job&gt;</code> in a class, and define our own thread-safe API.</p>
+<p>Godbolt: <a href="https://godbolt.org/z/hTh1voszv" class="uri">https://godbolt.org/z/hTh1voszv</a></p>
+<figure>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Unbounded queue with enqueue and non-waiting dequeue</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> JobQueue <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>queue<span class="op">&lt;</span>Job<span class="op">&gt;</span> jobs<span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The autogenerated default constructor already calls the default</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// constructor on all its members so we don&#39;t need to write our own.</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">//JobQueue() : jobs{} {}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// </span><span class="al">TODO</span><span class="co">: Make this thread-safe</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span> enqueue<span class="op">(</span>Job job<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    jobs<span class="op">.</span>push<span class="op">(</span>job<span class="op">);</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">// </span><span class="al">TODO</span><span class="co">: Make this thread-safe</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>optional<span class="op">&lt;</span>Job<span class="op">&gt;</span> try_dequeue<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>jobs<span class="op">.</span>empty<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="bu">std::</span>nullopt<span class="op">;</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>      Job job <span class="op">=</span> jobs<span class="op">.</span>front<span class="op">();</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>      jobs<span class="op">.</span>pop<span class="op">();</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> job<span class="op">;</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<figcaption>Snippet 5: 
+Unsafe shared queue
+</figcaption></figure>
+<p><mark>Question 1</mark>: What are the possible data races that may occur in this program? You may want to try enumerating them first before proceeding!</p>
+<details>
+<summary>
+Answer 1: Potential data races
+</summary>
+<p>We want to find pieces of code that may access the same region of memory from different threads. Right now, there is no synchronization, so essentially any line of code may race with any other line of code.</p>
+<p>Here’s the exact breakdown:</p>
+<ol type="1">
+<li>Producer – producer
+<ol type="a">
+<li><code>jobs.push(job)</code> may race with itself</li>
+</ol></li>
+<li>Producer – consumer
+<ol type="a">
+<li><code>jobs.push(job)</code> may race with <code>jobs.empty()</code></li>
+<li><code>jobs.push(job)</code> may race with <code>jobs.front()</code></li>
+<li><code>jobs.push(job)</code> may race with <code>jobs.pop()</code></li>
+</ol></li>
+<li>Consumer – consumer
+<ol type="a">
+<li><code>jobs.pop(job)</code> may race with <code>jobs.empty()</code></li>
+<li><code>jobs.pop(job)</code> may race with <code>jobs.front()</code></li>
+<li><code>jobs.pop(job)</code> may race with itself</li>
+</ol></li>
+</ol>
+</details>
+<h2 data-number="2.1" id="demo-1-use-stdmutex"><span class="header-section-number">2.1</span> Demo 1: use <code>std::mutex</code></h2>
+<p>First, we can add a <code>std::mutex</code> object to the class, then we can use the <code>.lock()</code> and <code>.unlock()</code> methods to guarantee mutual exclusion.</p>
+<p>Godbolt: <a href="https://godbolt.org/z/n5cvPY19P" class="uri">https://godbolt.org/z/n5cvPY19P</a></p>
+<figure>
+<div class="sourceCode" id="cb7" data-startFrom="30"><pre class="sourceCode cpp"><code class="sourceCode cpp" style="counter-reset: source-line 29;"><span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="co">// Unbounded queue with enqueue and non-blocking dequeue</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> JobQueue1 <span class="op">{</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>queue<span class="op">&lt;</span>Job<span class="op">&gt;</span> jobs<span class="op">;</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>mutex<span class="op"> </span>mut<span class="op">;</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a> <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  JobQueue1<span class="op">()</span> <span class="op">:</span> jobs<span class="op">{},</span> mut<span class="op">{}</span> <span class="op">{}</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span> enqueue<span class="op">(</span>Job job<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    mut<span class="op">.</span>lock<span class="op">();</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>    jobs<span class="op">.</span>push<span class="op">(</span>job<span class="op">);</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    mut<span class="op">.</span>unlock<span class="op">();</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Note: mutexes can only be unlocked by the thread that locked it.</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>    <span class="co">// c.f. binary semaphore, where release / acquire can be</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    <span class="co">// called from different threads.</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>optional<span class="op">&lt;</span>Job<span class="op">&gt;</span> try_dequeue<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>    mut<span class="op">.</span>lock<span class="op">();</span></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>jobs<span class="op">.</span>empty<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>      mut<span class="op">.</span>unlock<span class="op">();</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="bu">std::</span>nullopt<span class="op">;</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>      <span class="co">// Unfortunately, there&#39;s no pop + return in one API call</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>      <span class="co">// (yet?)</span></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>      Job job <span class="op">=</span> jobs<span class="op">.</span>front<span class="op">();</span></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>      jobs<span class="op">.</span>pop<span class="op">();</span></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>      mut<span class="op">.</span>unlock<span class="op">();</span></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> job<span class="op">;</span></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<figcaption>Snippet 6: 
+Protecting a shared queue with a mutex
+</figcaption></figure>
+<p><mark>Question 2</mark>: Why are the data races categorized earlier now impossible?</p>
+<details>
+<summary>
+Hint: Conditions for a data race to hold
+</summary>
+<p>Let’s take one of the races as an example, 2a:</p>
+<ul>
+<li><code>jobs.push(job)</code> may race with <code>jobs.empty()</code></li>
+</ul>
+<p>Recall the three conditions for a data race to hold:</p>
+<ol type="a">
+<li>Two threads access a shared resource</li>
+<li>… without any synchronization.</li>
+<li>At least one thread modifies the shared resource.</li>
+</ol>
+<p>The conditions (a) and (c) definitely hold. So the only way that this new code does not have a data race is if the condition (b) no longer holds.</p>
+</details>
+<details>
+<summary>
+Answer 2: Why mutexes work
+</summary>
+<p>The standard argument is to first define a critical section that contains all accesses to the shared resource <code>jobs</code>, and argue that the <code>std::mutex</code> guarantees mutual exclusivity of threads in the critical section.</p>
+<p>If we define the critical section to be the entirety of the <code>enqueue</code> and <code>try_dequeue</code> functions, we see that the calls <code>mut.lock()</code> and <code>mut.unlock()</code> do indeed bracket the critical section, and so only one thread may be in the critical section at any time. In particular, this guarantees that all accesses are synchronized, i.e. for any pair of accesses, one happens before the other.</p>
+<details>
+<summary>
+(Optional) Theoretical argument for synchronization
+</summary>
+<p>If we want to see exactly how C++ guarantees that the two accesses are synchronized, we will need to go into more detail. This section is optional this week, but we will cover this in more detail in Week 5.</p>
+<p>To show that (b) does not hold, we need to show that the two accesses occur with synchronization. In C++ theory jargon, that means that one access must “happen before” the other access.</p>
+<p>Firstly, C++ formalizes what it means for the <code>std::mutex</code> to guarantee mutual exclusion. The ingredients are:</p>
+<ul>
+<li>The lock and unlock operations on a single mutex appears to occur in a single total order. <em>(i.e. All threads observe the lock and unlock operations in the same order.)</em></li>
+<li>The lock operation blocks the thread until the thread owns the mutex, and the unlock operation gives up ownership of the mutex. Only one thread may own the mutex at a time, as seen by the single total order.</li>
+<li>The prior unlock operations <em>synchronize with</em> the lock operation.</li>
+</ul>
+<p>Secondly, we examine the potential execution traces. Whenever <code>jobs.push(job)</code> and <code>jobs.empty()</code> run on different threads, they happen after their respective <code>mut.lock()</code>s, and happen before their respective <code>mut.unlock()</code>s.</p>
+<p>Let’s call the pair of lock/unlock operations surrounding <code>jobs.push(job)</code> “A”, and the lock/unlock operations surrounding <code>jobs.empty()</code> “B”. Since the lock and unlock operations occur in a single total order, we know that from the perspective of either thread, either:</p>
+<ol type="1">
+<li>“A” happens before “B” and “A”-unlock synchronizes with “B”-lock, or</li>
+<li>“B” happens before “A” and “B”-unlock synchronizes with “A”-lock.</li>
+</ol>
+<p>In case (1), <code>jobs.push(job)</code> happens before “A”-unlock, which synchronizes with “B”-lock, which happens before <code>jobs.empty()</code>. Thus <code>jobs.push(job)</code> happens before <code>jobs.empty()</code>.</p>
+<p>In case (2), <code>jobs.empty()</code> happens before “B”-unlock, which synchronizes with “A”-lock, which happens before <code>jobs.push(job)</code>. Thus <code>jobs.empty()</code> happens before <code>jobs.push(job)</code>.</p>
+<p>Either way, since one access must happen before the other, condition (b) holds, and therefore this is not a data race.</p>
+</details>
+</details>
+<h2 data-number="2.2" id="demo-2-use-stdunique_lock"><span class="header-section-number">2.2</span> Demo 2: use <code>std::unique_lock</code></h2>
+<p>Right now, we have manually enclosed our critical section with <code>mut.lock()</code> and <code>mut.unlock()</code> calls. However, this implementation as it stands is actually <em>buggy</em>!</p>
+<p>Let’s take a closer look at <code>enqueue</code>:</p>
+<figure>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> enqueue<span class="op">(</span>Job job<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  mut<span class="op">.</span>lock<span class="op">();</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  jobs<span class="op">.</span>push<span class="op">(</span>job<span class="op">);</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  mut<span class="op">.</span>unlock<span class="op">();</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figcaption>Snippet 7: 
+<code>enqueue</code> with naive mutex
+</figcaption></figure>
+<p><mark>Question 3</mark>: What happens if we run out of memory?</p>
+<details>
+<summary>
+Answer 3: Out of memory
+</summary>
+<p>In that case, <code>jobs.push(job)</code> will first ensure that no change is made to <code>jobs</code>, then it will throw an exception. Since we don’t handle the exception, it bubbles up.</p>
+<figure>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> enqueue<span class="op">(</span>Job job<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  mut<span class="op">.</span>lock<span class="op">();</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  jobs<span class="op">.</span>push<span class="op">(</span>job<span class="op">);</span> <span class="co">// throws!</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// not executed</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// mut.unlock();</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figcaption>Snippet 8: 
+<code>enqueue</code> when <code>push</code> throws
+</figcaption></figure>
+<p>Now <code>mut.unlock()</code> never happens and we have managed to lock the entire system for eternity. Great job!</p>
+</details>
+<p>To prevent this, we can handle the exception by unlocking the mutex first, then rethrowing.</p>
+<figure>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> enqueue<span class="op">(</span>Job job<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  mut<span class="op">.</span>lock<span class="op">();</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    jobs<span class="op">.</span>push<span class="op">(</span>job<span class="op">);</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> <span class="cf">catch</span> <span class="op">(...)</span> <span class="op">{</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// unlock before bubbling up</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    mut<span class="op">.</span>unlock<span class="op">();</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">throw</span><span class="op">;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  mut<span class="op">.</span>unlock<span class="op">();</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figcaption>Snippet 9: 
+<code>enqueue</code> with proper exception handling
+</figcaption></figure>
+<p>However, this is extremely verbose. Instead, we can make use of the fact that C++ always calls object destructors on scope exit. If we lock the mutex when constructing an object, then unlock the mutex when destructing it, we ensure that we own mutex for exactly the lifetime of the object. We can create such an object with <code>std::unique_lock</code>.</p>
+<p>Godbolt: <a href="https://godbolt.org/z/r8ab6YdP6" class="uri">https://godbolt.org/z/r8ab6YdP6</a></p>
+<figure>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> enqueue<span class="op">(</span>Job job<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>unique_lock<span class="op"> </span>lock<span class="op">{</span>mut<span class="op">};</span> <span class="co">// constructor locks mutex</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  jobs<span class="op">.</span>push<span class="op">(</span>job<span class="op">);</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// destructor unlocks mutex</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figcaption>Snippet 10: 
+<code>enqueue</code> with <code>std::unique_lock</code>
+</figcaption></figure>
+<p>Now, even if <code>jobs.push(job)</code> throws an exception, since that counts as scope exit, C++ will call the destructor of <code>lock</code>, thus ensuring that the mutex is unlocked when we leave the critical section.</p>
+<p>Note: If you don’t need the <code>lock.lock()</code> and <code>lock.unlock()</code> methods, and you only need the RAII behaviour of tying mutex ownership to an object lifetime, you may also use <code>std::scoped_lock</code>, which uses less memory.</p>
+<h1 data-number="3" id="task-2-adding-blocking-dequeue-to-our-concurrent-queue"><span class="header-section-number">3</span> <mark>Task 2</mark>: Adding blocking dequeue to our concurrent queue</h1>
+<p>If the queue is currently empty, a consumer currently has no means of blocking until a new element has arrived. Using <code>std::counting_semaphore</code>, try to modify the queue such that <code>dequeue</code> blocks until the queue is non-empty!</p>
+<p>Godbolt: <a href="https://godbolt.org/z/xKrGW51bn" class="uri">https://godbolt.org/z/xKrGW51bn</a></p>
+<figure>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Unbounded queue with enqueue, non-blocking and blocking dequeue</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Use semaphores to signal blocked consumers</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> JobQueue3 <span class="op">{</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>queue<span class="op">&lt;</span>Job<span class="op">&gt;</span> jobs<span class="op">;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>mutex<span class="op"> </span>mut<span class="op">;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>counting_semaphore<span class="op">&lt;&gt;</span> count<span class="op">;</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a> <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  JobQueue3<span class="op">()</span> <span class="op">:</span> jobs<span class="op">{},</span> mut<span class="op">{},</span> count<span class="op">{</span><span class="dv">0</span><span class="op">}</span> <span class="op">{}</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span> enqueue<span class="op">(</span>Job job<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// </span><span class="al">TODO</span><span class="co">: add job to queue</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    jobs<span class="op">.</span>push<span class="op">(</span>job<span class="op">);</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>optional<span class="op">&lt;</span>Job<span class="op">&gt;</span> try_dequeue<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// </span><span class="al">TODO</span><span class="co">: get a job from queue. if queue is empty, just return nullopt</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">std::</span>nullopt<span class="op">;</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>  Job dequeue<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">// </span><span class="al">TODO</span><span class="co">: get a job from queue. if queue is empty, block until it isn&#39;t</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Job<span class="op">{-</span><span class="dv">1</span><span class="op">,</span> <span class="op">-</span><span class="dv">1</span><span class="op">};</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<figcaption>Snippet 11: 
+Skeleton for concurrent queue with blocking dequeue
+</figcaption></figure>
+<h1 data-number="4" id="demo-3-blocking-dequeue-using-a-monitor"><span class="header-section-number">4</span> Demo 3: Blocking dequeue using a monitor</h1>
+<p>The components of a monitor are:</p>
+<ol type="1">
+<li>A mutex</li>
+<li>A condition variable</li>
+<li>A condition to wait for</li>
+</ol>
+<p>As we already have a mutex that protects the critical section, we first add the condition variable to our class:</p>
+<figure>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>condition_variable<span class="op"> </span>cond<span class="op">;</span></span></code></pre></div>
+<figcaption>Snippet 12</figcaption></figure>
+<p>Next, in <code>dequeue</code>, we can now block until the queue is nonempty.</p>
+<p>Godbolt: <a href="https://godbolt.org/z/66zsjWrhd" class="uri">https://godbolt.org/z/66zsjWrhd</a></p>
+<figure>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>Job dequeue<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">std::</span>unique_lock<span class="op"> </span>lock<span class="op">{</span>mut<span class="op">};</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> <span class="op">(</span>jobs<span class="op">.</span>empty<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    cond<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Alternatively, this is exactly the same code</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// cond.wait(lock, [this]() { return !jobs.empty(); });</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  Job job <span class="op">=</span> jobs<span class="op">.</span>front<span class="op">();</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  jobs<span class="op">.</span>pop<span class="op">();</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> job<span class="op">;</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figcaption>Snippet 13: 
+Blocking dequeue with monitor
+</figcaption></figure>
+<p><code>cond.wait(lock)</code> will atomically unlock the mutex and start waiting on the condition variable. When the condition variable is notified (or a spurious wakeup occurs), the lock will be reacquired before continuing.</p>
+<p>We finish it off by having producers notify waiting consumer threads whenever a new element arrives.</p>
+<figure>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> enqueue<span class="op">(</span>Job job<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>unique_lock<span class="op"> </span>lock<span class="op">{</span>mut<span class="op">};</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    jobs<span class="op">.</span>push<span class="op">(</span>job<span class="op">);</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  cond<span class="op">.</span>notify_one<span class="op">();</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figcaption>Snippet 14: 
+Notifying consumers in enqueue
+</figcaption></figure>
+</body>
+</html>
