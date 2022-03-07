@@ -14,9 +14,9 @@ void write_y() {
 }
 
 void read_x_then_y() {
-    while (!x.load(std::memory_order_acquire));    // guaranteed to occur AFTER x.store()
+    while (!x.load(std::memory_order_acquire));    // guaranteed to synchronize with x.store(), order not guaranteed
 
-    if (y.load(std::memory_order_acquire))         // guaranteed to occur AFTER y.store()
+    if (y.load(std::memory_order_acquire))         // guaranteed to synchronize with y.store(), order not guaranteed
         ++z;
 
     // because x.store() and y.store() are not synchronized

@@ -32,6 +32,9 @@ int main() {
     y = false;
     z = 0;
 
+    // If every atomic that uses seq_cst ALWAYS uses seq_cst (which is recommended), then the rule is obvious:
+    // Interleave the different threads together (coherence ordered-before) WHILE obeying Program Order (strongly happens-before)
+
     // Sequentially Ordered, so ALL threads see the same sequence of operations on x and y
     std::thread a{ write_x };
     std::thread b{ write_y };

@@ -25,15 +25,13 @@ public:
 
     // Threadsafe dequeue
     std::optional<Job> try_dequeue() {
-        mut.lock();
+        std::unique_lock lock(mut);
         if (jobs.empty()) {
-            mut.unlock();
             return std::nullopt;
         }
         else {
             Job job = jobs.front();
             jobs.pop();
-            mut.unlock();
             return job;
         }
     }
