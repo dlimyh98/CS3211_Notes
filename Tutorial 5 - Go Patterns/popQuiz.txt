@@ -1,0 +1,18 @@
+var ch chan int = make(chan int, 1)
+
+goRoutine 1
+ ch <- 1
+ close(ch)
+
+ goRoutine 2
+ fmt.Println(<-ch)
+ fmt.Println(<-ch)
+
+ // What will be the print statements?
+
+ 1 0 (for ALL cases)
+
+ if goRoutine 1 runs first
+   - ch <- 1 is successful, goRoutine 1 manages to close the channel before goRoutine2 even starts
+   - when we read from ch in goRoutine2, we first DRAIN the channel of it's values (1), even though it is closed!
+   - then we print default values (0)
