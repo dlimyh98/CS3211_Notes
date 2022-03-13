@@ -1,3 +1,4 @@
+/*************************************** QUESTION 1 ********************************************/
 var ch chan int = make(chan int, 1)
 
 goRoutine 1
@@ -16,3 +17,10 @@ goRoutine 1
    - ch <- 1 is successful, goRoutine 1 manages to close the channel before goRoutine2 even starts
    - when we read from ch in goRoutine2, we first DRAIN the channel of it's values (1), even though it is closed!
    - then we print default values (0)
+
+/*************************************** QUESTION 2 ********************************************/
+Closing channels is important as memory can be leaked if we don't close it (FALSE)
+ - Channel closing has no effect on whether memory is leaked
+ - What is important tis to ensure that references to channels are deleted
+ - Purpose of channel closing is for senders to signal to receivers that "the end" of a thing has come
+ - Channel is like SHARED pointer to data structure
