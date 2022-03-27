@@ -21,7 +21,7 @@ fnc();             // prints 1
  *      all of the variables that were in scope when inner() was defined ALSO persist. 
  *      var a has been closed over (CLOSURE formed)
  * 
- * 2.3  var a is totally PRIVATE to fnca
+ * 2.3  var a is totally PRIVATE to fnc
  *
  * 3.1  a belongs to the scope of outer()
  * 3.2  scope of inner() has parent pointer to scope of outer()
