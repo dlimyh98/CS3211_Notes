@@ -9,11 +9,12 @@ func main() {
         // goRoutine is running a CLOSURE that has closed over the iteration variable "salutation"
         go func() {
             defer wg.Done()           // defers wg.Done() from executing, until surrounding function returns (the goRoutine func())
+                                      // wg.Done() will decrement the WaitGroup counter by 1
             fmt.Println(salutation)
         }()                           // no arguments to goRoutine
     }
 
-    wg.Wait()                         // wait for all goRoutines
+    wg.Wait()                         // wait for all goRoutines to finish (when the WaitGroup counter decrements to 0)
 }
 
 // This main() function is likely to only print x3 "good day"
