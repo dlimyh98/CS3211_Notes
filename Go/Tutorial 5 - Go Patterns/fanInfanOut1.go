@@ -8,7 +8,6 @@ import (
 )
 
 
-
 type Event struct {
 	id       int64
 	procTime time.Duration
@@ -17,11 +16,12 @@ type Event struct {
 type EventFunc func(Event) Event
 
 type worker struct {
-	inputCh  <-chan Event   // Worker reads inputs from inputCh
-	outputCh chan<- Event   // Worker sends results to outputCh`
+	inputCh  <-chan Event   // Worker reads inputs from inputCh (channel for receiving)
+	outputCh chan<- Event   // Worker sends results to outputCh (channel for sending)
 }
 
-// starts a newWorker, returns POINTER to newWorker
+// starts a newWorker, accepting inputs (inputCh, channel of events outputCh),
+// returns POINTER to newWorker
 func newWorker(inputCh, outputCh chan Event) *worker {
 	return &worker{
 		inputCh:  inputCh,
@@ -29,6 +29,8 @@ func newWorker(inputCh, outputCh chan Event) *worker {
 	}
 }
 
+// Receiver function (can receive pointer to worker)
+// the pointer to worker can then call the start function, similar to OOP class
 func (w *worker) start(
 	done <-chan struct{},
 	fn EventFunc, wg *sync.WaitGroup,
