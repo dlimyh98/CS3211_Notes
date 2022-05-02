@@ -1,4 +1,8 @@
-/************************* Ownership (does not allow Aliasing, can't point with two pointers to the same data) ***************/
+// Ownership prevents double-free (owner will free resource)
+// Borrowing prevents use-after-free
+// Data races are prevented in Rust, since sharing + mutation simultaneously is not allowed
+
+/************************* Ownership (does not allow Aliasing, can't point with two pointers to the same data), Mutations allowed ***************/
 fn main() {
     let mut book = Vec::new();    // mutable vector initialized, owner is main()
 
@@ -19,8 +23,6 @@ fn publish(book: Vec<String>) {
     // some code ....
     // runs destructor for book when function exits
 }
-
-
 
 
 
@@ -53,8 +55,6 @@ fn publish(book: &Vec<String>) {
     // some code ....
     // runs destructor for book when function exits
 }
-
-
 
 
 
