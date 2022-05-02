@@ -20,7 +20,7 @@ func consumer(done chan struct{}, q <-chan int, sumCh chan int) {
 
 func main() {
     done := make(chan struct{})
-    q, sumCh := make(chan int), make chan(int)
+    q, sumCh := make(chan int), make(chan int)
 
     for i := 0; i < 10; i++ {
         go producer(done,q)
